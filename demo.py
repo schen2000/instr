@@ -14,14 +14,19 @@ DFLT_IMGS_DIR = './rundir/frms/'
 
 class Camera:
     def __init__(self, *args, **kwargs):
-        sdir = kwargs["imgs_dir"] + '(left/right)'
-        print('search imgs in '+sdir)
-        imLs = glob.glob(sdir+'/left/*.png')
-        imRs = glob.glob(sdir+'/right/*.png')
+        self.imgs_dir_ = kwargs["imgs_dir"]
+        sdirL = self.imgs_dir_ + 'left/'
+        sdirR = self.imgs_dir_ + 'right/'
+
+        print('search imgs in '+sdirL)
+        imLs = glob.glob(sdirL+'*.png')
         print("found imLs : ", len(imLs))
-        for sL in imLs:
-            sL0 = sL.split('/')[-1]
-            print(sL0)
+
+        self.sfImgs_ = [] 
+        for s in imLs:
+            s0 = s.split('/')[-1]
+            self.sfImgs_.append(s0)
+            print("  ", s0)
 
         return
 
