@@ -12,11 +12,16 @@ from predictor import Predictor
 
 class Camera:
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError('Please implement your camera class in "demo.py"')
+        sdir = kwargs["imgs-dir"] + '(left/right)'
+        print('search imgs in '+sdir)
+        imLs = glob.glob(sdir+'/left/*.jpg')
+        imRs = glob.glob(sdir+'/right/*.jpg')
+
+        return
 
     def get_stereo(self):
-        raise NotImplementedError('Please implement a method that returns a pair of stereo images (RGB, uint8 numpy arrays) in "demo.py"')
 
+        return imL, imR
 
 def demo():
     parser = argparse.ArgumentParser()
@@ -24,6 +29,7 @@ def demo():
     parser.add_argument('--focal-length', type=float, default=1390.0277099609375/(2208/640))  # ZED intrinsics per default
     parser.add_argument('--baseline', type=float, default=0.12)  # ZED intrinsics per default
     parser.add_argument('--viz', default=False, action='store_true')
+    parser.add_argument('--imgs-dir', type=str, default='./frms')
     parser.add_argument('--save', default=False, action='store_true')
     parser.add_argument('--save-dir', type=str, default='./recorded_images')
     parser.add_argument('--aux-modality', type=str, default='depth', choices=['depth', 'disp'])
