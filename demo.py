@@ -17,6 +17,7 @@ class Camera:
         print('search imgs in '+sdir)
         imLs = glob.glob(sdir+'/left/*.png')
         imRs = glob.glob(sdir+'/right/*.png')
+        print("found imLs : ", len(imLs))
         for sL in imLs:
             sL0 = sL.split('/')[-1]
             print(sL0)
