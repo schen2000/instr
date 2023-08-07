@@ -6,6 +6,7 @@ import os
 import argparse
 import cv2
 import torch
+import glob
 import numpy as np
 from predictor import Predictor
 
@@ -13,7 +14,7 @@ DFLT_IMGS_DIR = './rundir/frms/'
 
 class Camera:
     def __init__(self, *args, **kwargs):
-        sdir = kwargs["imgs-dir"] + '(left/right)'
+        sdir = kwargs["imgs_dir"] + '(left/right)'
         print('search imgs in '+sdir)
         imLs = glob.glob(sdir+'/left/*.png')
         imRs = glob.glob(sdir+'/right/*.png')
