@@ -14,6 +14,7 @@ DFLT_IMGS_DIR = './rundir/frms/'
 
 class Camera:
     def __init__(self, *args, **kwargs):
+        self.idx_ = 0
         self.imgs_dir_ = kwargs["imgs_dir"]
         sdirL = self.imgs_dir_ + 'left/'
         sdirR = self.imgs_dir_ + 'right/'
@@ -29,8 +30,24 @@ class Camera:
             print("  ", s0)
 
         return
+    #---
+    def getNum(self):
+        return len(self.sfImgs_) 
 
+    #---
     def get_stereo(self):
+        if self.idx_ >= len(self.sfImgs_) :
+            return None, None
+
+        print("get_stereo() idx=", self.idx_)
+
+        sf = self.sfImgs_[self.idx_]
+        self.idx_ += 1
+        sfL = self.imgs_dir_ + "left/" + sf
+        sfR = self.imgs_dir_ + "right/" + sf
+        print("load img L/R:", sfL, ", ", sfR)
+        imL = cv2.imread(sfL)
+        imR = cv2.imread(sfR)
 
         return imL, imR
 
@@ -42,7 +59,7 @@ def demo():
     parser.add_argument('--viz', default=False, action='store_true')
     parser.add_argument('--imgs-dir', type=str, default=DFLT_IMGS_DIR)
     parser.add_argument('--save', default=False, action='store_true')
-    parser.add_argument('--save-dir', type=str, default='./recorded_images')
+    parser.add_argument('--save-dir', type=str, default='./rundir/output')
     parser.add_argument('--aux-modality', type=str, default='depth', choices=['depth', 'disp'])
     parser.add_argument('--alpha', type=float, default=0.4)
     args = parser.parse_args()
@@ -60,12 +77,17 @@ def demo():
     net = Predictor(state_dict_path=args.state_dict, focal_length=args.focal_length, baseline=args.baseline, return_depth=True if args.aux_modality == 'depth' else False)
 
     # init zed
-    cam = Camera()
+    cam = Camera(imgs_dir=DFLT_IMGS_DIR)
+    N = cam.getNum()
+    print("cam imgs: N=",N)
 
     ctr = 0
     # main forward loop
-    while 1:
+    for i in range(N):
+        print("getting img i=",i)
         left, right = cam.get_stereo()
+        if left is None:
+            break
 
         with torch.no_grad():
             pred_segmap, pred_depth = net.predict(left, right)
@@ -92,11 +114,14 @@ def demo():
 #------
 def test1():
     cam = Camera(imgs_dir=DFLT_IMGS_DIR)
+    N = cam.getNum()
+    for i in range(N):
+        imL, imR = cam.get_stereo()
 
 
     return
 
 #------
 if __name__ == '__main__':
-#    demo()
-    test1()
+    demo()
+#    test1()
