@@ -9,13 +9,17 @@ import torch
 import numpy as np
 from predictor import Predictor
 
+DFLT_IMGS_DIR = './rundir/frms/'
 
 class Camera:
     def __init__(self, *args, **kwargs):
         sdir = kwargs["imgs-dir"] + '(left/right)'
         print('search imgs in '+sdir)
-        imLs = glob.glob(sdir+'/left/*.jpg')
-        imRs = glob.glob(sdir+'/right/*.jpg')
+        imLs = glob.glob(sdir+'/left/*.png')
+        imRs = glob.glob(sdir+'/right/*.png')
+        for sL in imLs:
+            sL0 = sL.split('/')[-1]
+            print(sL0)
 
         return
 
@@ -29,7 +33,7 @@ def demo():
     parser.add_argument('--focal-length', type=float, default=1390.0277099609375/(2208/640))  # ZED intrinsics per default
     parser.add_argument('--baseline', type=float, default=0.12)  # ZED intrinsics per default
     parser.add_argument('--viz', default=False, action='store_true')
-    parser.add_argument('--imgs-dir', type=str, default='./frms')
+    parser.add_argument('--imgs-dir', type=str, default=DFLT_IMGS_DIR)
     parser.add_argument('--save', default=False, action='store_true')
     parser.add_argument('--save-dir', type=str, default='./recorded_images')
     parser.add_argument('--aux-modality', type=str, default='depth', choices=['depth', 'disp'])
@@ -78,6 +82,14 @@ def demo():
 
             ctr += 1
 
+#------
+def test1():
+    cam = Camera(imgs_dir=DFLT_IMGS_DIR)
 
+
+    return
+
+#------
 if __name__ == '__main__':
-    demo()
+#    demo()
+    test1()
