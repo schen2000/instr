@@ -50,10 +50,10 @@ class Camera:
         sfL = self.imgs_dir_ + "left/" + sf
         sfR = self.imgs_dir_ + "right/" + sf
         print("load img L/R:", sfL, ", ", sfR)
-        imL = cv2.imread(sfL)
-        imR = cv2.imread(sfR)
+        #imL = cv2.imread(sfL)
+        #imR = cv2.imread(sfR)
 
-        return imL, imR
+        return sfL, sfR
 
 def demo():
     parser = argparse.ArgumentParser()
@@ -90,7 +90,9 @@ def demo():
     # main forward loop
     for i in range(N):
         print("getting img i=",i)
-        left, right = cam.get_stereo()
+        sfL, sfR = cam.get_stereo()
+        left = cv2.imread(sfL)
+        right = cv2.imread(sfR)
         if left is None:
             break
 
