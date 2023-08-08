@@ -71,6 +71,7 @@ def demo():
         os.makedirs(os.path.join(args.save_dir, 'right'), exist_ok=True)
         os.makedirs(os.path.join(args.save_dir, 'depth'), exist_ok=True)
         os.makedirs(os.path.join(args.save_dir, 'pred'), exist_ok=True)
+        os.makedirs(os.path.join(args.save_dir, 'segmap'), exist_ok=True)
         os.makedirs(os.path.join(args.save_dir, 'overlay'), exist_ok=True)
 
     # load net
@@ -89,9 +90,11 @@ def demo():
         if left is None:
             break
 
+        print("run pred...")
         with torch.no_grad():
             pred_segmap, pred_depth = net.predict(left, right)
 
+        print("run pred done")
         if args.viz:
             left = cv2.resize(left, (640, 480), interpolation=cv2.INTER_LINEAR)
             left_overlay = net.colorize_preds(torch.from_numpy(pred_segmap).unsqueeze(0), rgb=left, alpha=args.alpha)
@@ -100,8 +103,12 @@ def demo():
             cv2.imshow('pred', left_overlay)
             cv2.imshow(args.aux_modality, pred_depth / pred_depth.max())
             cv2.waitKey(1)
+        #------
+        print("pred_segmap dim:", pred_segmap.shape)
+        #-----
 
         if args.save:
+            print("saving output...")
             cv2.imwrite(os.path.join(args.save_dir, 'left', str(ctr).zfill(6) + '.png'), left)
             cv2.imwrite(os.path.join(args.save_dir, 'right', str(ctr).zfill(6) + '.png'), right)
             np.save(os.path.join(args.save_dir, 'depth', str(ctr).zfill(6) + '.npy'), pred_depth)

@@ -54,6 +54,8 @@ class Predictor:
         else:
             preds = torch.zeros(preds.shape[0], 3, preds.shape[-2], preds.shape[-1], dtype=torch.uint8)
         preds = preds.squeeze().permute(1, 2, 0).numpy()
+        print("dbg: colorize_preds() preds:", preds.shape)
+        print("dbg: colorize_preds() rgb:", rgb.shape)
         if rgb is not None:
             preds = cv2.addWeighted(rgb, alpha, preds, 1 - alpha, 0.0)
         return preds
