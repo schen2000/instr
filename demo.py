@@ -19,9 +19,9 @@ DFLT_IMGS_DIR = './rundir/frms/'
 class Camera:
     def __init__(self, *args, **kwargs):
         self.idx_ = 0
-        self.imgs_dir_ = kwargs["imgs_dir"]
+        #self.imgs_dir_ = kwargs["imgs_dir"]
         sdirL = self.imgs_dir_ + 'left/'
-        sdirR = self.imgs_dir_ + 'right/'
+        #sdirR = self.imgs_dir_ + 'right/'
 
         print('search imgs in '+sdirL)
         imLs = glob.glob(sdirL+'*.png')
@@ -38,22 +38,22 @@ class Camera:
     def getNum(self):
         return len(self.sfImgs_) 
 
+
     #---
-    def get_stereo(self):
+    def get_img(self): 
         if self.idx_ >= len(self.sfImgs_) :
             return None, None
 
-        print("get_stereo() idx=", self.idx_)
-
+        print("get_img() idx=", self.idx_)
         sf = self.sfImgs_[self.idx_]
         self.idx_ += 1
-        sfL = self.imgs_dir_ + "left/" + sf
-        sfR = self.imgs_dir_ + "right/" + sf
-        print("load img L/R:", sfL, ", ", sfR)
+        #sfL = self.imgs_dir_ + "left/" + sf
+        #sfR = self.imgs_dir_ + "right/" + sf
+        #print("load img L/R:", sfL, ", ", sfR)
         #imL = cv2.imread(sfL)
         #imR = cv2.imread(sfR)
 
-        return sfL, sfR
+        return sf
 
 def demo():
     parser = argparse.ArgumentParser()
@@ -82,7 +82,7 @@ def demo():
     net = Predictor(state_dict_path=args.state_dict, focal_length=args.focal_length, baseline=args.baseline, return_depth=True if args.aux_modality == 'depth' else False)
 
     # init zed
-    cam = Camera(imgs_dir=DFLT_IMGS_DIR)
+    cam = Camera()
     N = cam.getNum()
     print("cam imgs: N=",N)
 
@@ -90,7 +90,9 @@ def demo():
     # main forward loop
     for i in range(N):
         print("getting img i=",i)
-        sfL, sfR = cam.get_stereo()
+        sf = cam.get_img()
+        sfL = DFLT_IMGS_DIR + "left/" +sf
+        sfR = DFLT_IMGS_DIR + "right/" +sf
         left = cv2.imread(sfL)
         right = cv2.imread(sfR)
         if left is None:
@@ -115,21 +117,22 @@ def demo():
 
         if args.save:
             print("saving output...")
-            cv2.imwrite(os.path.join(args.save_dir, 'left', str(ctr).zfill(6) + '.png'), left)
-            cv2.imwrite(os.path.join(args.save_dir, 'right', str(ctr).zfill(6) + '.png'), right)
+            #cv2.imwrite(os.path.join(args.save_dir, 'left', str(ctr).zfill(6) + '.png'), left)
+            #cv2.imwrite(os.path.join(args.save_dir, 'right', str(ctr).zfill(6) + '.png'), right)
             np.save(os.path.join(args.save_dir, 'depth', str(ctr).zfill(6) + '.npy'), pred_depth)
             cv2.imwrite(os.path.join(args.save_dir, 'segmap', str(ctr).zfill(6) + '.png'), pred_segmap)
             left_overlay = net.colorize_preds(torch.from_numpy(pred_segmap).unsqueeze(0), rgb=left, alpha=args.alpha)
             cv2.imwrite(os.path.join(args.save_dir, 'overlay', str(ctr).zfill(6) + '.png'), left_overlay)
 
+            write_pfm(os.path.join(args.save_dir, 'depth', sf), pred_depth)
             ctr += 1
 
 #------
 def test1():
-    cam = Camera(imgs_dir=DFLT_IMGS_DIR)
+    cam = Camera()
     N = cam.getNum()
     for i in range(N):
-        imL, imR = cam.get_stereo()
+        imL, imR = cam.get_img()
 
 
     return
