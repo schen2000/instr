@@ -20,7 +20,7 @@ class Camera:
     def __init__(self, *args, **kwargs):
         self.idx_ = 0
         #self.imgs_dir_ = kwargs["imgs_dir"]
-        sdirL = self.imgs_dir_ + 'left/'
+        sdirL = DFLT_IMGS_DIR + 'left/'
         #sdirR = self.imgs_dir_ + 'right/'
 
         print('search imgs in '+sdirL)
