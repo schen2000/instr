@@ -124,7 +124,8 @@ def demo():
             left_overlay = net.colorize_preds(torch.from_numpy(pred_segmap).unsqueeze(0), rgb=left, alpha=args.alpha)
             cv2.imwrite(os.path.join(args.save_dir, 'overlay', str(ctr).zfill(6) + '.png'), left_overlay)
 
-            write_pfm(os.path.join(args.save_dir, 'depth', sf), pred_depth)
+            sfd = os.path.join(args.save_dir, 'depth', sf.replace('.png', '.pfm'))
+            write_pfm(sfd, pred_depth)
             ctr += 1
 
 #------
