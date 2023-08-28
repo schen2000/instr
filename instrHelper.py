@@ -2,12 +2,14 @@
 Demo script.
 """
 
-import os
+import os,sys
 import argparse
 import cv2
 import torch
 import glob
 import numpy as np
+
+
 from predictor import Predictor
 from utils.file_io import write_pfm
 
@@ -62,6 +64,7 @@ class InstrNet(object):
         #----
         if self.cfg_viz_:
             left = cv2.resize(imL, (640, 480), interpolation=cv2.INTER_LINEAR)
+            #left = imL
             left_overlay = net.colorize_preds(torch.from_numpy(pred_segmap).unsqueeze(0), rgb=left, alpha=args.alpha)
             cv2.imshow('pred', left_overlay)
             cv2.imshow(args.aux_modality, pred_depth / pred_depth.max())
