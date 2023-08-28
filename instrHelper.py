@@ -66,7 +66,8 @@ class InstrNet(object):
             left = cv2.resize(imL, (640, 480), interpolation=cv2.INTER_LINEAR)
             #left = imL
             left_overlay = net.colorize_preds(torch.from_numpy(pred_segmap).unsqueeze(0), rgb=left, alpha=args.alpha)
-            cv2.imshow('pred', left_overlay)
+            im_pred = cv2.resize(left_overlay, (1280,800))
+            cv2.imshow('pred', im_pred)
             cv2.imshow(args.aux_modality, pred_depth / pred_depth.max())
             cv2.waitKey(1)
         #------
