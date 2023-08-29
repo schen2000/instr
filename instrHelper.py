@@ -14,80 +14,81 @@ from predictor import Predictor
 from utils.file_io import write_pfm
 
 TEST_FRMS = "./output/frms/"
+OUT_DIR = "./output/frms/"
+
 #-----
 class InstrNet(object):
     def __init__(self) -> None:
 
         self.cfg_pth_path_ = './pretrained_instr/models/pretrained_model.pth'
         self.cfg_viz_ = False
+        self.cfg_save_ = False
         #----
         parser = argparse.ArgumentParser()
- #       parser.add_argument('--state-dict', type=str, default='./pretrained_instr/models/pretrained_model.pth')
         parser.add_argument('--focal-length', type=float, default=1390.0277099609375/(2208/640))  # ZED intrinsics per default
         parser.add_argument('--baseline', type=float, default=0.12)  # ZED intrinsics per default
-#        parser.add_argument('--viz', default=False, action='store_true')
-#        parser.add_argument('--imgs-dir', type=str, default=DFLT_IMGS_DIR)
-        parser.add_argument('--save', default=False, action='store_true')
-        parser.add_argument('--save-dir', type=str, default='./rundir/output')
         parser.add_argument('--aux-modality', type=str, default='disp', choices=['depth', 'disp'])
         parser.add_argument('--alpha', type=float, default=0.4)
         args = parser.parse_args()
         self.args_ = args
 
-        #----
-        if args.save:
-            print(f"Saving images to {args.save_dir}")
-            os.makedirs(os.path.join(args.save_dir), exist_ok=True)
-            os.makedirs(os.path.join(args.save_dir, 'disp'), exist_ok=True)
-            os.makedirs(os.path.join(args.save_dir, 'pred'), exist_ok=True)
-            os.makedirs(os.path.join(args.save_dir, 'segmap'), exist_ok=True)
-            os.makedirs(os.path.join(args.save_dir, 'overlay'), exist_ok=True)
-        return 
-
     #----
     def init(self):
+        self.frm_idx_ = 0
         args = self.args_
         # load net
         net = Predictor(state_dict_path=self.cfg_pth_path_, focal_length=args.focal_length, baseline=args.baseline, return_depth=True if args.aux_modality == 'depth' else False)
         self.net_ = net
+
+        #-----------
+
+        #----
+        if self.cfg_save_:
+            wdir = OUT_DIR
+            os.makedirs(os.path.join(wdir), exist_ok=True)
+            os.makedirs(os.path.join(wdir, 'disp'), exist_ok=True)
+            os.makedirs(os.path.join(wdir, 'disp_vis'), exist_ok=True)
+            os.makedirs(os.path.join(wdir, 'segm'), exist_ok=True)
+            os.makedirs(os.path.join(wdir, 'segm_vis'), exist_ok=True)
+
         return True
     
     #----
     def run(self, imL, imR):
         net = self.net_
         args = self.args_
+
+        self.frm_idx_ += 1
+        fi = self.frm_idx_
+
         with torch.no_grad():
             pred_segmap, pred_disp = net.predict(imL, imR)
 
         print("run pred done")
 
         #----
+        sz = (imL.shape[1], imR.shape[0])
+        print("sz=", sz)
+        left1 = cv2.resize(imL, (640, 480), interpolation=cv2.INTER_LINEAR)
+        left_overlay = net.colorize_preds(torch.from_numpy(pred_segmap).unsqueeze(0), rgb=left1, alpha=args.alpha)
+        im_segmv = cv2.resize(left_overlay, sz)
+        im_dispv = pred_disp / pred_disp.max()
+        im_dispv = cv2.resize(im_dispv, sz)
+
         if self.cfg_viz_:
-            left = cv2.resize(imL, (640, 480), interpolation=cv2.INTER_LINEAR)
-            #left = imL
-            left_overlay = net.colorize_preds(torch.from_numpy(pred_segmap).unsqueeze(0), rgb=left, alpha=args.alpha)
-            im_pred = cv2.resize(left_overlay, (1280,800))
-            cv2.imshow('pred', im_pred)
-            im_disp = cv2.resize(pred_disp / pred_disp.max(), (1280,800))
-            cv2.imshow(args.aux_modality, im_disp)
+            cv2.imshow('segm overlay',  im_segmv)
+            cv2.imshow("Disparity vis", im_dispv)
             cv2.waitKey(1)
         #------
         #print("pred_segmap dim:", pred_segmap.shape)
         #-----
 
-        if args.save:
-            print("saving output...")
-            #cv2.imwrite(os.path.join(args.save_dir, 'left', str(ctr).zfill(6) + '.png'), left)
-            #cv2.imwrite(os.path.join(args.save_dir, 'right', str(ctr).zfill(6) + '.png'), right)
-            np.save(os.path.join(args.save_dir, 'disp', str(ctr).zfill(6) + '.npy'), pred_depth)
-            cv2.imwrite(os.path.join(args.save_dir, 'segmap', str(ctr).zfill(6) + '.png'), pred_segmap)
-            left_overlay = net.colorize_preds(torch.from_numpy(pred_segmap).unsqueeze(0), rgb=left, alpha=args.alpha)
-            cv2.imwrite(os.path.join(args.save_dir, 'overlay', str(ctr).zfill(6) + '.png'), left_overlay)
-
-            #---- depth
-            #sfd = os.path.join(args.save_dir, 'depth', sf.replace('.png', '.pfm'))
-            #write_pfm(sfd, pred_depth)
-            #ctr += 1
+        if self.cfg_save_:
+            print("instr save frm ", str(fi))
+            cv2.imwrite(OUT_DIR + "segm/" + str(fi)+ '.png', pred_segmap)
+            cv2.imwrite(OUT_DIR + "segm_vis/" + str(fi)+ '.png', im_segmv)
+            write_pfm(OUT_DIR + "disp/" + str(fi)+ '.pfm', pred_disp)
+            cv2.imwrite(OUT_DIR + "disp_vis/" + str(fi)+ '.png', im_dispv)
         return
 
 
