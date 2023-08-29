@@ -29,7 +29,7 @@ class InstrNet(object):
 #        parser.add_argument('--imgs-dir', type=str, default=DFLT_IMGS_DIR)
         parser.add_argument('--save', default=False, action='store_true')
         parser.add_argument('--save-dir', type=str, default='./rundir/output')
-        parser.add_argument('--aux-modality', type=str, default='depth', choices=['depth', 'disp'])
+        parser.add_argument('--aux-modality', type=str, default='disp', choices=['depth', 'disp'])
         parser.add_argument('--alpha', type=float, default=0.4)
         args = parser.parse_args()
         self.args_ = args
@@ -38,7 +38,7 @@ class InstrNet(object):
         if args.save:
             print(f"Saving images to {args.save_dir}")
             os.makedirs(os.path.join(args.save_dir), exist_ok=True)
-            os.makedirs(os.path.join(args.save_dir, 'depth'), exist_ok=True)
+            os.makedirs(os.path.join(args.save_dir, 'disp'), exist_ok=True)
             os.makedirs(os.path.join(args.save_dir, 'pred'), exist_ok=True)
             os.makedirs(os.path.join(args.save_dir, 'segmap'), exist_ok=True)
             os.makedirs(os.path.join(args.save_dir, 'overlay'), exist_ok=True)
@@ -57,7 +57,7 @@ class InstrNet(object):
         net = self.net_
         args = self.args_
         with torch.no_grad():
-            pred_segmap, pred_depth = net.predict(imL, imR)
+            pred_segmap, pred_disp = net.predict(imL, imR)
 
         print("run pred done")
 
@@ -68,7 +68,8 @@ class InstrNet(object):
             left_overlay = net.colorize_preds(torch.from_numpy(pred_segmap).unsqueeze(0), rgb=left, alpha=args.alpha)
             im_pred = cv2.resize(left_overlay, (1280,800))
             cv2.imshow('pred', im_pred)
-            cv2.imshow(args.aux_modality, pred_depth / pred_depth.max())
+            im_disp = cv2.resize(pred_disp / pred_disp.max(), (1280,800))
+            cv2.imshow(args.aux_modality, im_disp)
             cv2.waitKey(1)
         #------
         #print("pred_segmap dim:", pred_segmap.shape)
@@ -78,7 +79,7 @@ class InstrNet(object):
             print("saving output...")
             #cv2.imwrite(os.path.join(args.save_dir, 'left', str(ctr).zfill(6) + '.png'), left)
             #cv2.imwrite(os.path.join(args.save_dir, 'right', str(ctr).zfill(6) + '.png'), right)
-            np.save(os.path.join(args.save_dir, 'depth', str(ctr).zfill(6) + '.npy'), pred_depth)
+            np.save(os.path.join(args.save_dir, 'disp', str(ctr).zfill(6) + '.npy'), pred_depth)
             cv2.imwrite(os.path.join(args.save_dir, 'segmap', str(ctr).zfill(6) + '.png'), pred_segmap)
             left_overlay = net.colorize_preds(torch.from_numpy(pred_segmap).unsqueeze(0), rgb=left, alpha=args.alpha)
             cv2.imwrite(os.path.join(args.save_dir, 'overlay', str(ctr).zfill(6) + '.png'), left_overlay)
