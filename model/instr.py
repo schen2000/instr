@@ -216,6 +216,7 @@ class INSTR(pl.LightningModule):
 
         if self.with_disp:
             disp_pred = self.disp_decoder(encoded_transformer, [l3, l2_cat, l1_cat])
+            print("  dbg: disp_decoder out:", disp_pred.shape)
             disp_pred = F.interpolate(disp_pred, size=(480, 640), mode='bilinear', align_corners=False)
             rets.add('disp_pred', disp_pred, tb=_convert_disp)
 
