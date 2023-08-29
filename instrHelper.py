@@ -72,7 +72,10 @@ class InstrNet(object):
         left1 = cv2.resize(imL, (640, 480), interpolation=cv2.INTER_LINEAR)
         left_overlay = net.colorize_preds(torch.from_numpy(pred_segmap).unsqueeze(0), rgb=left1, alpha=args.alpha)
         im_segmv = cv2.resize(left_overlay, sz)
-        im_dispv = pred_disp / pred_disp.max()
+        print("pred_disp range:", (pred_disp.min(), pred_disp.max()))
+
+        print("pred_disp shape:", pred_disp.shape)
+        im_dispv = pred_disp.astype(np.uint8)
         im_dispv = cv2.resize(im_dispv, sz)
 
         if self.cfg_viz_:
