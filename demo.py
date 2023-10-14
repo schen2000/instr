@@ -13,8 +13,6 @@ from utils.file_io import write_pfm
 
 DFLT_IMGS_DIR = './rundir/frms/'
 
-
-
 #------------
 class Camera:
     def __init__(self, *args, **kwargs):
